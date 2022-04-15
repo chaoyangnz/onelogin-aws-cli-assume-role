@@ -53,6 +53,7 @@ public class OneloginAWSCLI {
 	private static String oneloginClientID = null;
 	private static String oneloginClientSecret = null;
 	private static String oneloginRegion = "us";
+	private static String oneloginOtpToken = null;
 
 	public static Boolean commandParser(final String[] commandLineArguments) {
 		final CommandLineParser cmd = new DefaultParser();
@@ -186,6 +187,13 @@ public class OneloginAWSCLI {
 				}
 			}
 
+			if (commandLine.hasOption("onelogin-otp-token")) {
+				value = commandLine.getOptionValue("onelogin-otp-token");
+				if (value != null && !value.isEmpty()) {
+					oneloginOtpToken = value;
+				}
+			}
+
 			// VALIDATIONS
 			
 			if (((awsAccountId != null && !awsAccountId.isEmpty()) && (awsRoleName == null || awsRoleName.isEmpty())) || ((awsRoleName != null && !awsRoleName.isEmpty()) && (awsAccountId == null || awsAccountId.isEmpty()))) {
@@ -223,6 +231,7 @@ public class OneloginAWSCLI {
 		options.addOption(null, "onelogin-client-id", true, "A valid OneLogin API client_id");
 		options.addOption(null, "onelogin-client-secret", true, "A valid OneLogin API client_secret");
 		options.addOption(null, "onelogin-region", true, "Onelogin region. us or eu  (Default value: us)");
+		options.addOption(null, "onelogin-otp-token", true, "Onelogin MFA OTP token");
 
 		return options;
 	}
@@ -535,8 +544,12 @@ public class OneloginAWSCLI {
 					deviceId = deviceSelection.getID();
 					deviceIdStr = deviceId.toString();
 
-					System.out.print("Enter the OTP Token for " + deviceSelection.getType() + ": ");
-					otpToken = scanner.next();
+					if (oneloginOtpToken != null) {
+						otpToken = oneloginOtpToken;
+					} else {
+						System.out.print("Enter the OTP Token for " + deviceSelection.getType() + ": ");
+						otpToken = scanner.next();
+					}
 					stateToken = mfa.getStateToken();
 					mfaVerifyInfo = new HashMap<String, String>();
 					mfaVerifyInfo.put("otpToken", otpToken);
